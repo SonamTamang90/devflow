@@ -1,9 +1,9 @@
-import { signOut } from "@/auth";
+import Link from "next/link";
+
+import HomeFilter from "@/components/filters/HomeFilter";
 import LocalSearch from "@/components/search/LocalSearch";
 import { Button } from "@/components/ui/button";
 import ROUTES from "@/constants/routes";
-import { SearchParams } from "next/dist/server/request/search-params";
-import Link from "next/link";
 
 const questions = [
   {
@@ -25,7 +25,7 @@ const questions = [
     title: "How to learn JavaScript?",
     description: "I want to learn JavaScript, can anyone help me?",
     tags: [
-      { _id: "1", name: "React" },
+      { _id: "1", name: "JavaScript" },
       { _id: "2", name: "JavaScript" },
     ],
     author: { _id: "1", name: "John Doe" },
@@ -41,13 +41,20 @@ interface SearchParams {
 }
 
 const Home = async ({ searchParams }: SearchParams) => {
-  const { query = "" } = await searchParams;
-  const filteredQuestions = questions.filter((question) =>
-    question.title.toLowerCase().includes(query?.toLowerCase())
-  );
+  const { query = "", filter = "" } = await searchParams;
+
+  const filteredQuestions = questions.filter((question) => {
+    const matchesQuery = question.title
+      .toLowerCase()
+      .includes(query.toLowerCase());
+    const matchesFilter = filter
+      ? question.tags[0].name.toLowerCase() === filter.toLowerCase()
+      : true;
+    return matchesQuery && matchesFilter;
+  });
   return (
     <>
-      <section className="w-full flex flex-col-reverse sm:flex-row justify-between sm:items-center gap-4">
+      <section className="flex w-full flex-col-reverse justify-between gap-4 sm:flex-row sm:items-center">
         <h1 className="h1-bold text-dark100_light900">All Questions</h1>
         <Button
           className="primary-gradient min-h-[45px] px-4 py-3 !text-light-900"
@@ -64,7 +71,7 @@ const Home = async ({ searchParams }: SearchParams) => {
           otherClasses="flex-1"
         />
       </section>
-      {/* HomeFilter */}
+      <HomeFilter />
       <div className="mt-10 flex w-full flex-col gap-6">
         {filteredQuestions.map((question) => (
           <h1 key={question._id} className="">
@@ -77,13 +84,3 @@ const Home = async ({ searchParams }: SearchParams) => {
 };
 
 export default Home;
-
-// <form
-//         className="px-10 pt-[100px]"
-//         action={async () => {
-//           "use server";
-//           await signOut({ redirectTo: ROUTES.SIGN_IN });
-//         }}
-//       >
-//         <Button type="submit">Log out</Button>
-//       </form>
